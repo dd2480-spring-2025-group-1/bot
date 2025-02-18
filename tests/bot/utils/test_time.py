@@ -5,8 +5,9 @@ from dateutil.relativedelta import relativedelta
 
 from bot.utils import time
 
-# We tell the linter to ignore the long line length in this file.
+# We tell the linter to ignore the long line lengths and print statements in this file.
 # ruff: noqa: E501
+# ruff: noqa: T201
 
 class TimeTests(unittest.TestCase):
     """Test helper functions in bot.utils.time."""
@@ -19,8 +20,14 @@ class TimeTests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # We print the coverage report at the end of the test, and we also tell the linter to ignore this.
-        print(f"humanize_delta coverage report: {sum(cls.flags)}/13") # noqa: T201
+        # We print the coverage report at the end of the test.
+        coverage = sum(cls.flags)
+        branches = len(cls.flags)
+        false_flags = filter(lambda x: not x[1], enumerate(cls.flags))
+        misses = [x[0] for x in false_flags]
+        print(f"humanize_delta coverage report: {coverage}/{branches}")
+        print(f"Missed branches: {misses}")
+
 
     def test_humanize_delta_handle_unknown_units(self):
         """humanize_delta should be able to handle unknown units, and will not abort."""
