@@ -5,22 +5,35 @@ from dateutil.relativedelta import relativedelta
 
 from bot.utils import time
 
+# We tell the linter to ignore the long line length in this file.
+# ruff: noqa: E501
 
 class TimeTests(unittest.TestCase):
     """Test helper functions in bot.utils.time."""
+
+    @classmethod
+    def setUpClass(cls):
+        # Note that our branch coverage reporter does not take logical operators into account.
+        # i.e. if you have a line with `if a and b`, it will only count as 1 branch, not 2.
+        cls.flags = [False] * 12
+
+    @classmethod
+    def tearDownClass(cls):
+        # We print the coverage report at the end of the test, and we also tell the linter to ignore this.
+        print(f"humanize_delta coverage report: {sum(cls.flags)}/13") # noqa: T201
 
     def test_humanize_delta_handle_unknown_units(self):
         """humanize_delta should be able to handle unknown units, and will not abort."""
         # Does not abort for unknown units, as the unit name is checked
         # against the attribute of the relativedelta instance.
-        actual = time.humanize_delta(relativedelta(days=2, hours=2), precision="elephants", max_units=2)
+        actual = time.humanize_delta(relativedelta(days=2, hours=2), precision="elephants", max_units=2, flags=self.flags)
         self.assertEqual(actual, "2 days and 2 hours")
 
     def test_humanize_delta_handle_high_units(self):
         """humanize_delta should be able to handle very high units."""
         # Very high maximum units, but it only ever iterates over
         # each value the relativedelta might have.
-        actual = time.humanize_delta(relativedelta(days=2, hours=2), precision="hours", max_units=20)
+        actual = time.humanize_delta(relativedelta(days=2, hours=2), precision="hours", max_units=20, flags=self.flags)
         self.assertEqual(actual, "2 days and 2 hours")
 
     def test_humanize_delta_should_normal_usage(self):
@@ -34,7 +47,7 @@ class TimeTests(unittest.TestCase):
 
         for delta, precision, max_units, expected in test_cases:
             with self.subTest(delta=delta, precision=precision, max_units=max_units, expected=expected):
-                actual = time.humanize_delta(delta, precision=precision, max_units=max_units)
+                actual = time.humanize_delta(delta, precision=precision, max_units=max_units, flags=self.flags)
                 self.assertEqual(actual, expected)
 
     def test_humanize_delta_raises_for_invalid_max_units(self):
@@ -43,7 +56,7 @@ class TimeTests(unittest.TestCase):
 
         for max_units in test_cases:
             with self.subTest(max_units=max_units), self.assertRaises(ValueError) as error:
-                time.humanize_delta(relativedelta(days=2, hours=2), precision="hours", max_units=max_units)
+                time.humanize_delta(relativedelta(days=2, hours=2), precision="hours", max_units=max_units, flags=self.flags)
             self.assertEqual(str(error.exception), "max_units must be positive.")
 
     def test_format_with_duration_none_expiry(self):

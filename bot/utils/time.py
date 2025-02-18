@@ -93,6 +93,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 12,
 ) -> str:
     ...
 
@@ -106,6 +107,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 12,
 ) -> str:
     ...
 
@@ -123,6 +125,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 12,
 ) -> str:
     ...
 # endregion
@@ -133,6 +136,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 12,
     **kwargs,
 ) -> str:
     """
@@ -190,23 +194,30 @@ def humanize_delta(
     In the example, the difference arises because all months don't have the same number of days.
     """
     if args and kwargs:
+        flags[0] = True
         raise ValueError("Unsupported combination of positional and keyword arguments.")
 
     if len(args) == 0:
+        flags[1] = True
         delta = relativedelta(**kwargs)
     elif len(args) == 1 and isinstance(args[0], relativedelta):
+        flags[2] = True
         delta = args[0]
     elif len(args) <= 2:
+        flags[3] = True
         end = arrow.get(args[0])
+        flags[4] = True
         start = arrow.get(args[1]) if len(args) == 2 else arrow.utcnow()
         delta = round_delta(relativedelta(end.datetime, start.datetime))
 
         if absolute:
+            flags[5] = True
             delta = abs(delta)
     else:
         raise ValueError(f"Received {len(args)} positional arguments, but expected 1 or 2.")
 
     if max_units <= 0:
+        flags[6] = True
         raise ValueError("max_units must be positive.")
 
     units = (
@@ -222,20 +233,25 @@ def humanize_delta(
     time_strings = []
     unit_count = 0
     for unit, value in units:
+        flags[7] = True
         if value:
+            flags[8] = True
             time_strings.append(_stringify_time_unit(value, unit))
             unit_count += 1
 
         if unit == precision or unit_count >= max_units:
+            flags[9] = True
             break
 
     # Add the 'and' between the last two units, if necessary.
     if len(time_strings) > 1:
+        flags[10] = True
         time_strings[-1] = f"{time_strings[-2]} and {time_strings[-1]}"
         del time_strings[-2]
 
     # If nothing has been found, just make the value 0 precision, e.g. `0 days`.
     if not time_strings:
+        flags[11] = True
         humanized = _stringify_time_unit(0, precision)
     else:
         humanized = ", ".join(time_strings)
