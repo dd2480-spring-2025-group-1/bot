@@ -15,7 +15,7 @@ class TimeTests(unittest.TestCase):
     def setUpClass(cls):
         # Note that our branch coverage reporter does not take logical operators into account.
         # i.e. if you have a line with `if a and b`, it will only count as 1 branch, not 2.
-        cls.flags = [False] * 12
+        cls.flags = [False] * 22
 
     @classmethod
     def tearDownClass(cls):
