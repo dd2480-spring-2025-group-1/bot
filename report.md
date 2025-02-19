@@ -66,12 +66,16 @@ With everything combined, we deemed the project suitable for this assignment.
 
 Plan for refactoring complex code:
 - For `humanize_delta@utils/time.py`, we plan on extracting methods, as the function is composed of two main parts, parsing of overload arguments into time delta, and stringification of the delta. Arguably, the former can be delegated to a separate helper function, which should greatly reduce the cyclomatic complexity.  
+- For `apply_for@./bot/exts/filtering/_filter_lists/invite.py`, we plan on extracting methods, as the function is composed of many steps that can be isolated into separate functions. One could extract functionalities like redefining invites, sorting invites, finding blocked invites and cleaning up invites into separate functions.  
 
 Estimated impact of refactoring (lower CC, but other drawbacks?):
-- For `humanize_delta@utils/time.py`, no drawbacks are anticipated, except for the use of `typing.Any` in the type signature for the new helper function. However, since type hints are not strongly enforced in Python (they're just **hints** for humans), this should not be a huge deal.  
+- For `humanize_delta@utils/time.py`, no drawbacks are anticipated, except for the use of `typing.Any` in the type signature for the new helper function. However, since type hints are not strongly enforced in Python (they're just **hints** for humans), this should not be a huge deal.
+-  For `apply_for@./bot/exts/filtering/_filter_lists/invite.py`, no drawbacks are anticipated.
 
 Carried out refactoring (optional, P+):
 - For `humanize_delta@utils/time.py`, we have [PR #4](https://github.com/dd2480-spring-2025-group-1/bot/pull/4) which reduces CCN by 37.5%.
+- For `apply_for@./bot/exts/filtering/_filter_lists/invite.py`, we have [PR #22](https://github.com/dd2480-spring-2025-group-1/bot/pull/22) which reduces CCN by 35.1%.
+
 
 ## Coverage
 
