@@ -46,7 +46,7 @@ With everything combined, we deemed the project suitable for this assignment.
             - For `deactivate_infraction@infraction/_scheduler.py`, we get
             - For `infraction_edit@infraction/management.py`, we get
             - For `humanize_delta@utils/time.py`, we get 16 CCN.
-            - For `on_command_error@backend/error_handler.py`, we get
+            - For `on_command_error@backend/error_handler.py`, we get 20 CCN.
     * Are the results clear?
         - Some of us got different results. Upon discussing further, it was discovered that we had different methods in counting CCNs, e.g. how we deal with switch-cases, logical operators, list comprehensions, etc. Once we had those clarified, we started getting consistent results.
         - The CCNs we counted were mostly the same as Lizard's. There is, however, one small caveat for `apply_infraction@infraction/_scheduler.py` - we counted 27 CCN instead of 26.
