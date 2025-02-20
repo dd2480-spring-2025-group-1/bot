@@ -127,16 +127,20 @@ Show the comments that describe the requirements for the coverage:
 
 Report of old coverage:
 ```
-Name                          Stmts   Miss Branch BrPart  Cover   Missing
------------------------------------------------------------------------------------
-bot/utils/helpers.py             23      8      4      1    67%   19, 25-28, 38-43
+Name                                          Stmts   Miss Branch BrPart  Cover   Missing
+------------------------------------------------------------------------------------------
+bot/utils/helpers.py                            23      8      4      1    67%   19, 25-28, 38-43
+bot/exts/filtering/_filter_lists/invite.py      93     69     32      1    20%
 ```
 
 Report of new coverage:
 ```
-Name                          Stmts   Miss Branch BrPart  Cover   Missing
------------------------------------------------------------------------------------
-bot/utils/helpers.py             23      0      4      0   100%
+Name                                          Stmts   Miss Branch BrPart  Cover   Missing
+------------------------------------------------------------------------------------------
+bot/utils/helpers.py                            23      0      4      0   100%
+bot/exts/filtering/_filter_lists/invite.py      93     13     32     10    77%
+
+
 ```
 
 Test cases added:
