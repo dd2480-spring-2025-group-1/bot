@@ -18,6 +18,9 @@ from bot.exts.filtering._utils import clean_input
 if typing.TYPE_CHECKING:
     from bot.exts.filtering.filtering import Filtering
 
+# We tell the linter to ignore the long line lengths and print statements in this file.
+# ruff: noqa: E501
+# ruff: noqa: T201
 
 REFINED_INVITE_CODE = re.compile(
     r"(?P<invite>[a-zA-Z0-9/_-]+)"  # The supposedly real invite code.
@@ -57,98 +60,133 @@ class InviteList(FilterList[InviteFilter]):
         return {InviteFilter}
 
     async def actions_for(
-        self, ctx: FilterContext
+        self, ctx: FilterContext, flags: list[bool] = [False]*64,
     ) -> tuple[ActionSettings | None, list[str], dict[ListType, list[Filter]]]:
         """Dispatch the given event to the list's filters, and return actions to take and messages to relay to mods."""
+
+        def cov_if(cond: int, index: int) -> bool:
+            """
+            Set the flag at the given index based on the condition.
+
+            Expects condition and the index of the flag to set (increases linearly but creates two flags at index*2 and index*2+1 in the background).
+            """
+            if cond:
+                flags[index*2] = True
+            else:
+                flags[index*2+1] = True
+            return cond
+
+        def cov_for(iterable: typing.Any, index: int) -> typing.Any:
+            """
+            Set the flag at the given index if the iterables have a length>0.
+
+            Expects iterable and the index of the flag to set(increases linearly but creates two flags at index*2 and index*2+1 in the background).
+            """
+            if len(iterable) > 0:
+                flags[index*2] = True
+            else:
+                flags[index*2+1] = True
+            return iterable
+
         text = clean_input(ctx.content, keep_newlines=True)
 
         matches = list(DISCORD_INVITE.finditer(text))
-        invite_codes = {m.group("invite") for m in matches}
-        if not invite_codes:
+        invite_codes = {m.group("invite") for m in cov_for(matches, 0)}
+        if cov_if(not invite_codes, 1):
             return None, [], {}
         all_triggers = {}
 
+
         refined_invites = {}
-        for invite_code in invite_codes:
+        for invite_code in cov_for(invite_codes, 2):
             # Attempt to overcome an obfuscated invite.
             # If the result is incorrect, it won't make the whitelist more permissive or the blacklist stricter.
             refined_invite_code = invite_code
-            if match := REFINED_INVITE_CODE.search(invite_code):
+            if cov_if(match := REFINED_INVITE_CODE.search(invite_code), 3):
                 refined_invite_code = match.group("invite")
             refined_invites[invite_code] = refined_invite_code
+
 
         _, failed = self[ListType.ALLOW].defaults.validations.evaluate(ctx)
         # If the allowed list doesn't operate in the context, unknown invites are allowed.
         check_if_allowed = not failed
 
+
         # Sort the invites into two categories:
         invites_for_inspection = dict()  # Found guild invites requiring further inspection.
         unknown_invites = dict()  # Either don't resolve or group DMs.
-        for invite_code in refined_invites.values():
+        for invite_code in cov_for(refined_invites.values(), 4):
             try:
                 invite = await bot.instance.fetch_invite(invite_code)
             except NotFound:
-                if check_if_allowed:
+                if cov_if(check_if_allowed, 5):
                     unknown_invites[invite_code] = None
             else:
-                if invite.guild:
+                if cov_if(invite.guild, 6):  # Guild invite
                     invites_for_inspection[invite_code] = invite
-                elif check_if_allowed:  # Group DM
+                elif cov_if(check_if_allowed, 7):  # Group DM
                     unknown_invites[invite_code] = invite
 
+
         # Find any blocked invites
-        new_ctx = ctx.replace(content={invite.guild.id for invite in invites_for_inspection.values()})
+        new_ctx = ctx.replace(content={invite.guild.id for invite in cov_for(invites_for_inspection.values(), 8)})
         triggered = await self[ListType.DENY].filter_list_result(new_ctx)
-        blocked_guilds = {filter_.content for filter_ in triggered}
+        blocked_guilds = {filter_.content for filter_ in cov_for(triggered, 9)}
         blocked_invites = {
-            code: invite for code, invite in invites_for_inspection.items() if invite.guild.id in blocked_guilds
+            code: invite for code, invite in cov_for(invites_for_inspection.items(), 10) if cov_if(invite.guild.id in blocked_guilds, 11)
         }
+
 
         # Remove the ones which are already confirmed as blocked, or otherwise ones which are partnered or verified.
         invites_for_inspection = {
-            code: invite for code, invite in invites_for_inspection.items()
-            if invite.guild.id not in blocked_guilds
-            and "PARTNERED" not in invite.guild.features and "VERIFIED" not in invite.guild.features
+            code: invite for code, invite in cov_for(invites_for_inspection.items(), 12)
+            if cov_if(invite.guild.id not in blocked_guilds
+            and "PARTNERED" not in invite.guild.features and "VERIFIED" not in invite.guild.features, 13)
         }
 
         # Remove any remaining invites which are allowed
-        guilds_for_inspection = {invite.guild.id for invite in invites_for_inspection.values()}
+        guilds_for_inspection = {invite.guild.id for invite in cov_for(invites_for_inspection.values(), 14)}
 
-        if check_if_allowed:  # Whether unknown invites need to be checked.
+
+        if cov_if(check_if_allowed, 15):  # Whether unknown invites need to be checked.
             new_ctx = ctx.replace(content=guilds_for_inspection)
             all_triggers[ListType.ALLOW] = [
-                filter_ for filter_ in self[ListType.ALLOW].filters.values()
-                if await filter_.triggered_on(new_ctx)
+                filter_ for filter_ in cov_for(self[ListType.ALLOW].filters.values(), 16)
+                if cov_if(await filter_.triggered_on(new_ctx), 17)
             ]
-            allowed = {filter_.content for filter_ in all_triggers[ListType.ALLOW]}
+
+            allowed = {filter_.content for filter_ in cov_for(all_triggers[ListType.ALLOW], 18)}
             unknown_invites.update({
-                code: invite for code, invite in invites_for_inspection.items() if invite.guild.id not in allowed
+                code: invite for code, invite in cov_for(invites_for_inspection.items(), 19) if cov_if(invite.guild.id not in allowed, 20)
             })
 
-        if not triggered and not unknown_invites:
+
+        if cov_if(not triggered and not unknown_invites, 21):
             return None, [], all_triggers
 
         actions = None
-        if unknown_invites:  # There are invites which weren't allowed but aren't explicitly blocked.
+        if cov_if(unknown_invites, 22):  # There are invites which weren't allowed but aren't explicitly blocked.
             actions = self[ListType.ALLOW].defaults.actions
         # Blocked invites come second so that their actions have preference.
-        if triggered:
-            if actions:
+        if cov_if(triggered, 23):
+            if cov_if(actions, 24):
                 actions = actions.union(self[ListType.DENY].merge_actions(triggered))
             else:
                 actions = self[ListType.DENY].merge_actions(triggered)
             all_triggers[ListType.DENY] = triggered
 
+
         blocked_invites |= unknown_invites
-        ctx.matches += {match[0] for match in matches if refined_invites.get(match.group("invite")) in blocked_invites}
-        ctx.alert_embeds += (self._guild_embed(invite) for invite in blocked_invites.values() if invite)
-        if unknown_invites:
+        ctx.matches += {match[0] for match in cov_for(matches, 25) if cov_if(refined_invites.get(match.group("invite")) in blocked_invites, 26)}
+        ctx.alert_embeds += (self._guild_embed(invite) for invite in cov_for(blocked_invites.values(), 27) if cov_if(invite, 28))
+        if cov_if(unknown_invites, 29):
             ctx.potential_phish[self] = set(unknown_invites)
 
         messages = self[ListType.DENY].format_messages(triggered)
         messages += [
-            f"`{code} - {invite.guild.id}`" if invite else f"`{code}`" for code, invite in unknown_invites.items()
+            f"`{code} - {invite.guild.id}`" if cov_if(invite, 30) else f"`{code}`" for code, invite in cov_for(unknown_invites.items(), 31)
         ]
+
         return actions, messages, all_triggers
 
     @staticmethod
