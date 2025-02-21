@@ -64,7 +64,7 @@ class InviteList(FilterList[InviteFilter]):
     ) -> tuple[ActionSettings | None, list[str], dict[ListType, list[Filter]]]:
         """Dispatch the given event to the list's filters, and return actions to take and messages to relay to mods."""
 
-        def cov_if(cond: int, index: int) -> bool:
+        def cov_if(cond: int, index: int) -> bool: # pragma: no cover
             """
             Set the flag at the given index based on the condition.
 
@@ -76,7 +76,7 @@ class InviteList(FilterList[InviteFilter]):
                 flags[index*2+1] = True
             return cond
 
-        def cov_for(iterable: typing.Any, index: int) -> typing.Any:
+        def cov_for(iterable: typing.Any, index: int) -> typing.Any: # pragma: no cover
             """
             Set the flag at the given index if the iterables have a length>0.
 
