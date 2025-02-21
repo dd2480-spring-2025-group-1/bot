@@ -396,7 +396,8 @@ class InfractionScheduler:
         pardon_reason: str | None = None,
         *,
         send_log: bool = True,
-        notify: bool = True
+        notify: bool = True,
+        flags: list[bool] = [False] * 20
     ) -> dict[str, str]:
         """
         Deactivate an active infraction and return a dictionary of lines to send in a mod log.
@@ -413,6 +414,20 @@ class InfractionScheduler:
 
         Infractions of unsupported types will raise a ValueError.
         """
+        def cov_if(bool: int, index_true: int, index_false: int) -> bool: # pragma: no cover
+            if bool:
+                flags[index_true] = True
+            else:
+                flags[index_false] = True
+            return bool
+
+        def cov_for(iterable: t.Any, index_true: int, index_false: int) -> t.Any: # pragma: no cover
+            if len(iterable) > 0:
+                flags[index_true] = True
+            else:
+                flags[index_false] = True
+            return iterable
+
         guild = self.bot.get_guild(constants.Guild.id)
         mod_role = guild.get_role(constants.Roles.moderators)
         user_id = infraction["user"]
@@ -434,7 +449,7 @@ class InfractionScheduler:
             log.trace("Awaiting the pardon action coroutine.")
             returned_log = await self._pardon_action(infraction, notify)
 
-            if returned_log is not None:
+            if cov_if(returned_log is not None, 0, 1):
                 log_text = {**log_text, **returned_log}  # Merge the logs together
             else:
                 raise ValueError(
@@ -445,7 +460,7 @@ class InfractionScheduler:
             log_text["Failure"] = "The bot lacks permissions to do this (role hierarchy?)"
             log_content = mod_role.mention
         except discord.HTTPException as e:
-            if e.code == 10007 or e.status == 404:
+            if cov_if(e.code == 10007 or e.status == 404, 2, 3):
                 log.info(
                     f"Can't pardon {infraction['type']} for user {infraction['user']} because user left the guild."
                 )
@@ -469,7 +484,7 @@ class InfractionScheduler:
                 }
             )
 
-            log_text["Watching"] = "Yes" if active_watch else "No"
+            log_text["Watching"] = "Yes" if cov_if(active_watch, 4, 5) else "No"
         except ResponseCodeError:
             log.exception(f"Failed to fetch watch status for user {user_id}")
             log_text["Watching"] = "Unknown - failed to fetch watch status."
@@ -480,10 +495,10 @@ class InfractionScheduler:
 
             data = {"active": False}
 
-            if pardon_reason is not None:
+            if cov_if(pardon_reason is not None, 6, 7):
                 data["reason"] = ""
                 # Append pardon reason to infraction in database.
-                if (punish_reason := infraction["reason"]) is not None:
+                if cov_if((punish_reason := infraction["reason"]) is not None, 8, 9):
                     data["reason"] = punish_reason + " | "
 
                 data["reason"] += f"Pardoned: {pardon_reason}"
@@ -498,21 +513,21 @@ class InfractionScheduler:
             log_content = mod_role.mention
 
             # Append to an existing failure message if possible
-            if "Failure" in log_text:
+            if cov_if("Failure" in log_text, 10, 11):
                 log_text["Failure"] += f" {log_line}"
             else:
                 log_text["Failure"] = log_line
 
         # Cancel the expiration task.
-        if infraction["expires_at"] is not None:
+        if cov_if(infraction["expires_at"] is not None, 12, 13):
             self.scheduler.cancel(infraction["id"])
 
         # Send a log message to the mod log.
-        if send_log:
-            log_title = "expiration failed" if "Failure" in log_text else "expired"
+        if cov_if(send_log, 14, 15):
+            log_title = "expiration failed" if cov_if("Failure" in log_text, 14, 15) else "expired"
 
             user = self.bot.get_user(user_id)
-            avatar = user.display_avatar.url if user else None
+            avatar = user.display_avatar.url if cov_if(user, 16, 17) else None
 
             # Move reason to end so when reason is too long, this is not gonna cut out required items.
             log_text["Reason"] = log_text.pop("Reason")
@@ -524,7 +539,7 @@ class InfractionScheduler:
                 colour=Colours.soft_green,
                 title=f"Infraction {log_title}: {type_}",
                 thumbnail=avatar,
-                text="\n".join(f"{k}: {v}" for k, v in log_text.items()),
+                text="\n".join(f"{k}: {v}" for k, v in cov_for(log_text.items(), 18, 19)),
                 footer=f"ID: {id_}",
                 content=log_content,
             )
