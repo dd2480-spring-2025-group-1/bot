@@ -1,30 +1,18 @@
 import os
 import unittest
-from unittest.mock import ANY, AsyncMock, DEFAULT, MagicMock, Mock, patch
-from unittest.mock import patch
+from unittest.mock import AsyncMock, Mock, patch
 
-from bot.constants import Event
-from bot.exts.moderation.clean import Clean
-from bot.exts.moderation.infraction import _utils
-from bot.exts.moderation.infraction.infractions import Infractions
-from bot.exts.moderation.infraction.management import ModManagement
-from bot.exts.moderation.infraction._scheduler import InfractionScheduler
-from tests.helpers import MockBot, MockContext, MockGuild, MockMember, MockRole, MockUser, autospec
 from dotenv import load_dotenv
+
+from bot.exts.moderation.infraction._scheduler import InfractionScheduler
+from bot.exts.moderation.infraction.infractions import Infractions
+from tests.helpers import MockBot, MockContext, MockGuild, MockMember, MockRole
+
 dotenv_path = os.path.join(os.path.dirname(__file__), "..", "bot", ".env")
 
 load_dotenv(dotenv_path)
-from bot.log import get_logger
 
 class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.flags = [False] * 15
-
-    @classmethod
-    def tearDownClass(cls):
-        print(f"deactivate_infraction coverage report: {sum(cls.flags)}/15") 
-
     def setUp(self):
         self.me = MockMember(id=7890, roles=[MockRole(id=7890, position=5)])
         self.bot = MockBot()
@@ -36,7 +24,9 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
 
 
         # Initialize the InfractionScheduler with supported infractions
-        self.scheduler = InfractionScheduler(self.bot, supported_infractions=["ban", "kick", "timeout", "note", "warning", "voice_mute"])
+        self.scheduler = InfractionScheduler(self.bot, supported_infractions=[
+            "ban", "kick", "timeout", "note", "warning", "voice_mute"
+        ])
 
     @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
     async def test_deactivate_infraction_minimal(self):
@@ -67,7 +57,7 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
         self.ctx.guild.ban = AsyncMock()
 
         # Call the method under test
-        log_text = await self.scheduler.deactivate_infraction(infraction, flags=self.flags)
+        log_text = await self.scheduler.deactivate_infraction(infraction)
 
         # Assertions to ensure the function was entered and basic behavior occurred
         self.assertIn("Member", log_text)
