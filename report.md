@@ -57,7 +57,7 @@ With everything combined, we deemed the project suitable for this assignment.
     - For `deactivate_infraction@infraction/_scheduler.py`, it is a function that deactivates infraction status for users in the database and returns a log of the removed infraction.
     - For `apply_infraction@infraction/_scheduler.py`, it is a function that applies an infraction to the user and logs the infraction. It can also notify the user of the infraction.
     - For `infraction_edit@infraction/management.py` modifies punishments for users who have violated server rules and notifies moderators about the changes. It is used by `infraction_append`, which applies new punishments, since the two functions share most logic. The function must handle various edge cases, such as preventing edits to expired infractions or warnings. It also processes multiple input formats and validates the request before making API calls. These requirements introduce multiple decision points, contributing to its high CC.
-    - For `humanize_delta@utils/time.py`, it is a function that takes in a period of time (e.g. start and end timestamps) as its arguments, then convert it into a human-readable string.
+    - For `humanize_delta@utils/time.py`, it is a function that takes in a period of time (e.g. start and end timestamps) as its arguments, then convert it into a human-readable string. In which case, high CC is not expected.
     - For `on_command_error@./bot/exts/backend/error_handler.py`, it is a function that provides error messages given a generic error by deferring errors to local error handlers.
 4. Are exceptions taken into account in the given measurements?
     - Yes, for both Lizard and our manual counting. If we don't take them into account, then the resultant CCN could drop.
@@ -69,6 +69,8 @@ With everything combined, we deemed the project suitable for this assignment.
     - For `on_command_error@./bot/exts/backend/error_handler.py`, the documentation provides a clear and concise description of most of the functions behaviour, but seems to fail to document the `CommandInvokeError` branch behaviour almost entirely.
 
 ## Refactoring
+
+⚠️ Note: since `on_command_error@error_handler.py` already has 100% test coverage as reported by `coverage.py`, we decided to do part 2 of the assignment with `actions_for@invite.py` instead, which is the function with the highest CCN as reported by lizard (CCN 37) and it has 0% test coverage.
 
 Plan for refactoring complex code:
 - For `apply_infraction@infraction/_scheduler.py`, we can extract most of the code related to logging of the results. This code be handled in a seperate function. This would reduce the amount of CCN significantly.
@@ -89,8 +91,6 @@ Carried out refactoring (optional, P+):
 - For `actions_for@./bot/exts/filtering/_filter_lists/invite.py`, we have [PR #22](https://github.com/dd2480-spring-2025-group-1/bot/pull/22) which reduces CCN by 35.1%.
 - For `infraction_edit@infraction/management.py`, we have [PR #21](https://github.com/dd2480-spring-2025-group-1/bot/pull/21) which reduces CCN by about 39%.
 
-Note: since `on_command_error@error_handler.py` already has 100% test coverage as reported by `coverage.py`, we decided to do part 2 of the assignment with `actions_for@invite.py` instead, which is the function with the highest CCN as reported by lizard (CCN 37) and it has 0% test coverage.
-
 ## Coverage
 
 ### Tools
@@ -107,7 +107,9 @@ There is only one small caveat here: coverage by function or class is not native
 
 Show a patch (or link to a branch) that shows the instrumented code to
 gather coverage measurements:
-- For `humanize_delta@utils/time.py`, we have [PR #10](https://github.com/dd2480-spring-2025-group-1/bot/pull/10)
+- For `apply_infraction@infraction/_scheduler.py`, we have [PR #70](https://github.com/dd2480-spring-2025-group-1/bot/pull/70). Note that there is no test file for `_scheduler.py`, and the coverage is trivially expected to be zero.
+- For `deactivate_infraction@infraction/_scheduler.py`, we have [PR #65](https://github.com/dd2480-spring-2025-group-1/bot/pull/65). Note that there is no test file for `_scheduler.py`, and the coverage is trivially expected to be zero.
+- For `humanize_delta@utils/time.py`, we have [PR #10](https://github.com/dd2480-spring-2025-group-1/bot/pull/10).
 - For `infraction_edit@infraction/management.py`: we have [PR #28](https://github.com/dd2480-spring-2025-group-1/bot/pull/28). This PR includes created tests from later in the assignment since the coverage tool will otherwise not run if there are no tests as described in the limitations of the tool.
 - For `actions_for@invite.py`: we have [PR #46](https://github.com/dd2480-spring-2025-group-1/bot/pull/46). This PR includes created tests from later in the assignment since the coverage tool will otherwise not run if there are no tests as described in the limitations of the tool.
 
@@ -130,7 +132,7 @@ its output?
 - As mentioned above, there are some constructs that we currently do not support.
 - It requires manual analysis on the branching of the code.
 - Once set up, the readability of the code is greatly affected, as a lot of `cov_if` and `cov_for` function calls are injected into the original code, which causes some degree of "obfuscation".
-- Another limitation is that there will be no coverage output if no tests exist for the function since the coverage tool will never be run.
+- Another limitation is that the coverage tool cannot be run if there exists no test file for the function. However, this is not too big of a deal, as it is trivial that branch coverage is zero if there exists no test file.
 
 3. Are the results of your tool consistent with existing coverage tools?
 - The reported number of total branches are mostly consistent.
@@ -150,8 +152,7 @@ Show the comments that describe the requirements for the coverage:
     - The function should not allow editing the duration of a warning or note infraction.
     - The function should not allow editing the duration of an expired infraction.
     - The function should call the `api_client.patch` method to update an infraction when a new reason is provided.
-- For `actions_for@_filter_lists/invite.py` there were no tests before. The function documentation is very scarce, thus the test cases had to be derived from the code itself. Some parts of the code are inaccessible since they require certain filters to trigger, which is not realizable with the MockBot used which generates random ids and data.
-Nonetheless the following tests could be implemented:
+- For `actions_for@_filter_lists/invite.py` there were no tests before. The function documentation is very scarce, thus the test cases had to be derived from the code itself. Some parts of the code are inaccessible since they require certain filters to trigger, which is not realizable with the MockBot used which generates random ids and data. Nonetheless the following tests could be implemented:
   - The function should return success for a valid invite url, i.e. empty action, a message containing the invite code and the list filter that allowed the invite (since no filter triggered it, it should be ListType.ALLOW:[]).
   - The function should return failure when there is no invite url in the ctx content, i.e. it should return None as action, an empty message and an empty dictionary for the list type.
   - The function should return failure when the invite url is invalid.
