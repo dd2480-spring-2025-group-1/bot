@@ -1,6 +1,7 @@
 import os
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
+from fastapi import HTTPException
 
 from dotenv import load_dotenv
 
@@ -70,6 +71,43 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
             f"bot/infractions/{infraction['id']}",
             json={"active": False}
         )
+
+        # Ensure _pardon_action was called
+        self.scheduler._pardon_action.assert_called_once_with(infraction, True)
+
+    @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"ban": ("some_url", "some_other_url")})
+    async def test_deactivate_infraction_user_left_guild(self):
+        # Define a minimal infraction
+        infraction = {
+            "id": 456,
+            "user": 789,
+            "actor": 123,
+            "type": "ban",
+            "reason": "Test reason",
+            "inserted_at": "2023-01-01T00:00:00Z",
+            "expires_at": "2023-01-02T00:00:00Z",
+            "active": True
+        }
+
+        # Mock _pardon_action to return an exception
+        self.scheduler._pardon_action = AsyncMock(side_effect=HTTPException(status_code=404, detail="Not Found"))
+
+        # Mock the API client
+        self.bot.api_client.patch = AsyncMock(return_value=None)
+
+        mock_channel = AsyncMock()
+        self.bot.get_channel.return_value = mock_channel
+
+        self.cog.apply_infraction = AsyncMock()
+        self.bot.get_cog.return_value = AsyncMock()
+        self.cog.mod_log.ignore = Mock()
+        self.ctx.guild.ban = AsyncMock()
+
+        with self.assertRaises(HTTPException) as context:
+            await self.scheduler.deactivate_infraction(infraction)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "Not Found")
 
         # Ensure _pardon_action was called
         self.scheduler._pardon_action.assert_called_once_with(infraction, True)
