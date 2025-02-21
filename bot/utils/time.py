@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import re
+import typing
 from copy import copy
 from enum import Enum
 from time import struct_time
@@ -93,6 +94,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 22,
 ) -> str:
     ...
 
@@ -106,6 +108,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 22,
 ) -> str:
     ...
 
@@ -123,6 +126,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 22,
 ) -> str:
     ...
 # endregion
@@ -133,6 +137,7 @@ def humanize_delta(
     precision: _Precision = "seconds",
     max_units: int = 6,
     absolute: bool = True,
+    flags: list[bool] = [False] * 22,
     **kwargs,
 ) -> str:
     """
@@ -189,24 +194,39 @@ def humanize_delta(
     Instead, it's relative to the `datetime` to which it's added to get the other `datetime`.
     In the example, the difference arises because all months don't have the same number of days.
     """
-    if args and kwargs:
+    def cov_if(bool: int, index_true: int, index_false: int) -> bool: # pragma: no cover
+        if bool:
+            flags[index_true] = True
+        else:
+            flags[index_false] = True
+        return bool
+
+    def cov_for(iterable: typing.Any, index_true: int, index_false: int) -> typing.Any: # pragma: no cover
+        if len(iterable) > 0:
+            flags[index_true] = True
+        else:
+            flags[index_false] = True
+        return iterable
+
+
+    if cov_if(args and kwargs, 0, 1):
         raise ValueError("Unsupported combination of positional and keyword arguments.")
 
-    if len(args) == 0:
+    if cov_if(len(args) == 0, 2, 3):
         delta = relativedelta(**kwargs)
-    elif len(args) == 1 and isinstance(args[0], relativedelta):
+    elif cov_if(len(args) == 1 and isinstance(args[0], relativedelta), 4, 5):
         delta = args[0]
-    elif len(args) <= 2:
+    elif cov_if(len(args) <= 2, 6, 7):
         end = arrow.get(args[0])
         start = arrow.get(args[1]) if len(args) == 2 else arrow.utcnow()
         delta = round_delta(relativedelta(end.datetime, start.datetime))
 
-        if absolute:
+        if cov_if(absolute, 8, 9):
             delta = abs(delta)
     else:
         raise ValueError(f"Received {len(args)} positional arguments, but expected 1 or 2.")
 
-    if max_units <= 0:
+    if cov_if(max_units <= 0, 10, 11):
         raise ValueError("max_units must be positive.")
 
     units = (
@@ -221,21 +241,20 @@ def humanize_delta(
     # Add the time units that are >0, but stop at precision or max_units.
     time_strings = []
     unit_count = 0
-    for unit, value in units:
-        if value:
+    for unit, value in cov_for(units, 12, 13):
+        if cov_if(value, 14, 15):
             time_strings.append(_stringify_time_unit(value, unit))
             unit_count += 1
-
-        if unit == precision or unit_count >= max_units:
+        if cov_if(unit == precision or unit_count >= max_units, 16, 17):
             break
 
     # Add the 'and' between the last two units, if necessary.
-    if len(time_strings) > 1:
+    if cov_if(len(time_strings) > 1, 18, 19):
         time_strings[-1] = f"{time_strings[-2]} and {time_strings[-1]}"
         del time_strings[-2]
 
     # If nothing has been found, just make the value 0 precision, e.g. `0 days`.
-    if not time_strings:
+    if cov_if(not time_strings, 20, 21):
         humanized = _stringify_time_unit(0, precision)
     else:
         humanized = ", ".join(time_strings)
