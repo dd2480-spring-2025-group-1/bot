@@ -55,10 +55,10 @@ With everything combined, we deemed the project suitable for this assignment.
     - We observe a slight correlation, but no causal effects. Generally speaking, if a function is long, then it's more probable that it contains some sort of complex code. However, there is no strict correlation here, as short functions can still be complex, vice versa.
 3. What is the purpose of the functions?
     - For `deactivate_infraction@infraction/_scheduler.py`, it is a function that deactivates infraction status for users in the database and returns a log of the removed infraction.
-    - For `apply_infraction@infraction/_scheduler.py`, it is a function that applies an infraction to the user and logs the infraction. It can also notify the user of the infraction.
+    - For `apply_infraction@infraction/_scheduler.py`, it is a function that applies an infraction to the user and logs the infraction. It can also notify the user of the infraction. The high CC seems unnecessary, because if it involves numerous steps, the methods should be extracted rather than having all of them in the same function.
     - For `infraction_edit@infraction/management.py` modifies punishments for users who have violated server rules and notifies moderators about the changes. It is used by `infraction_append`, which applies new punishments, since the two functions share most logic. The function must handle various edge cases, such as preventing edits to expired infractions or warnings. It also processes multiple input formats and validates the request before making API calls. These requirements introduce multiple decision points, contributing to its high CC.
     - For `humanize_delta@utils/time.py`, it is a function that takes in a period of time (e.g. start and end timestamps) as its arguments, then convert it into a human-readable string. In which case, high CC is not expected.
-    - For `on_command_error@./bot/exts/backend/error_handler.py`, it is a function that provides error messages given a generic error by deferring errors to local error handlers. The high CC is caused by the fact that the function has to make sense of a general error and find the matching error case, which introduces many if statements. The function could be refactored to reduce CC slightly but this would make it less readable and as far as test coverage goes, it is not too difficult to enter every branch since there are very specific conditions for each path (also the test coverage is 100% already). The high CC is justified for this function.
+    - For `on_command_error@./bot/exts/backend/error_handler.py`, it is a function that provides error messages given a generic error by deferring errors to local error handlers. The high CC is caused by the fact that the function has to make sense of a general error and find the matching error case, which introduces many if statements. The function could be refactored to reduce CC slightly but it seems justified, as it needs to handle a bunch of different error types that easily results in a lot of `if` statements.
 4. Are exceptions taken into account in the given measurements?
     - Yes, for both Lizard and our manual counting. If we don't take them into account, then the resultant CCN could drop.
 5. Is the documentation clear w.r.t. all the possible outcomes?
@@ -164,7 +164,7 @@ Show the comments that describe the requirements for the coverage:
   - The function should mark the infraction as deactivated in the database
   - The function should add a Failure to the mod log file with the reason "User no longer in Guild" if a 404 is raised when pardoning an infraction.
   - The function should add a Failure to the mod log file and an explanation that the bot lacks permissions if a Forbidden is rased.
-  
+
 
 Report of old coverage:
 ```
