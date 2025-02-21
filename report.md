@@ -42,8 +42,8 @@ With everything combined, we deemed the project suitable for this assignment.
              76     20    412      3      85 on_command_error@65-149@./bot/exts/backend/error_handler.py
           ```
         - By counting manually and cross-checking, we reached the following consensus:
-            - For `apply_infraction@infraction/_scheduler.py`, we get
-            - For `deactivate_infraction@infraction/_scheduler.py`, we get
+            - For `apply_infraction@infraction/_scheduler.py`, we get 27 CCN.
+            - For `deactivate_infraction@infraction/_scheduler.py`, we get 17 CCN.
             - For `infraction_edit@infraction/management.py`, we get
             - For `humanize_delta@utils/time.py`, we get 16 CCN.
             - For `on_command_error@backend/error_handler.py`, we get 20 CCN.
@@ -54,11 +54,15 @@ With everything combined, we deemed the project suitable for this assignment.
 2. Are the functions just complex, or also long?
     - We observe a slight correlation, but no causal effects. Generally speaking, if a function is long, then it's more probable that it contains some sort of complex code. However, there is no strict correlation here, as short functions can still be complex, vice versa.
 3. What is the purpose of the functions?
+    - For `deactivate_infraction@infraction/_scheduler.py`, it is a function that deactivates infraction status for users in the database and returns a log of the removed infraction.
+    - For `apply_infraction@infraction/_scheduler.py`, it is a function that applies an infraction to the user and logs the infraction. It can also notify the user of the infraction.
     - For `humanize_delta@utils/time.py`, it is a function that takes in a period of time (e.g. start and end timestamps) as its arguments, then convert it into a human-readable string.
     - For `on_command_error@./bot/exts/backend/error_handler.py`, it is a function that provides error messages given a generic error by deferring errors to local error handlers.
 4. Are exceptions taken into account in the given measurements?
     - Yes, for both Lizard and our manual counting. If we don't take them into account, then the resultant CCN could drop.
 5. Is the documentation clear w.r.t. all the possible outcomes?
+    - For `deactivate_infraction@infraction/_scheduler.py`, some parts of the function were easy to read with regards to all the possible outcomes, as the function utilises if/else statements in variable assignment without documenting the use case.
+    - For `apply_infraction@infraction/_scheduler.py`, the function is quite easy to read and understand by the given documentation.  
     - For `humanize_delta@utils/time.py`, exceptions were not explicitly documented. Other than that, the function only produces a string as its outcome, therefore we think the documentation was mostly clear.
     - For `on_command_error@./bot/exts/backend/error_handler.py`, the documentation provides a clear and concise description of most of the functions behaviour, but seems to fail to document the `CommandInvokeError` branch behaviour almost entirely.
 
@@ -67,13 +71,18 @@ With everything combined, we deemed the project suitable for this assignment.
 Plan for refactoring complex code:
 - For `deactivate_infraction@infraction/_scheduler.py`, we plan on extracting the 3 different try/exepct blocks into separate methods (pardon_infraction, user_is_watched, update_db).
 - For `humanize_delta@utils/time.py`, we plan on extracting methods, as the function is composed of two main parts, parsing of overload arguments into time delta, and stringification of the delta. Arguably, the former can be delegated to a separate helper function, which should greatly reduce the cyclomatic complexity.  
+- For `actions_for@./bot/exts/filtering/_filter_lists/invite.py`, we plan on extracting methods, as the function is composed of many steps that can be isolated into separate functions. One could extract functionalities like redefining invites, sorting invites, finding blocked invites and cleaning up invites into separate functions.  
 
 Estimated impact of refactoring (lower CC, but other drawbacks?):
 - For `deactivate_infraction@infraction/_scheduler.py`, some drawbacks are decreased readablility of the code and increased function calls. 
 - For `humanize_delta@utils/time.py`, no drawbacks are anticipated, except for the use of `typing.Any` in the type signature for the new helper function. However, since type hints are not strongly enforced in Python (they're just **hints** for humans), this should not be a huge deal.  
+-  For `actions_for@./bot/exts/filtering/_filter_lists/invite.py`, no drawbacks are anticipated.
 
 Carried out refactoring (optional, P+):
 - For `humanize_delta@utils/time.py`, we have [PR #4](https://github.com/dd2480-spring-2025-group-1/bot/pull/4) which reduces CCN by 37.5%.
+- For `actions_for@./bot/exts/filtering/_filter_lists/invite.py`, we have [PR #22](https://github.com/dd2480-spring-2025-group-1/bot/pull/22) which reduces CCN by 35.1%.
+
+Note: since the `on_command_error` function already has 100% test coverage as reported by `coverage.py`, we decided to do part 2 of the assignment with `actions_for` instead, which is the function with the highest CCN as reported by lizard (CCN 37) and it has 20% test coverage.
 
 ## Coverage
 
