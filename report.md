@@ -159,8 +159,11 @@ Show the comments that describe the requirements for the coverage:
   - The function should return failure when the invite url is invalid.
   - The function should return success for a different but valid url.
 - For `deactivate_infraction@infraction/_scheduler.py` there were no tests before. The following tests were implemented:
+  - The function calls _pardon_action
+  - The function should write member infraction data to the log file
+  - The function should mark the infraction as deactivated in the database
   - The function should add a Failure to the mod log file with the reason "User no longer in Guild" if a 404 is raised when pardoning an infraction.
-  - The function should write member infraction data to the log file and deactivate the infraction.
+  - The function should add a Failure to the mod log file and an explanation that the bot lacks permissions if a Forbidden is rased.
   
 
 Report of old coverage:
@@ -178,7 +181,7 @@ Report of new coverage:
 ```
 Name                                          Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------------------------
-deactivate_infraction@_scheduler.py             60     21     14      5    59%   440, 444-446, 455-457, 473-475, 484-489, 495-504, 507->511, 511->532
+deactivate_infraction@_scheduler.py             60     20     14      4    59%   437-440, 455-457, 473-475, 484-489, 495-504, 507->511, 511->532
 apply_infraction@_scheduler.py                  86     41     34     12    48%   157->160, 167, 183->191 ....221-238, 241->259, 246-256, 260-267
 bot/utils/helpers.py                            23      0      4      0   100%
 infraction_edit@management.py                   51     22     26      7    52%   188, 194-195, 197-202, 214, 229-242, 254-255, 261
@@ -187,7 +190,7 @@ actions_for@invite.py                           55     10     26      7    72%  
 ```
 
 Test cases added:
-- For `deactivate_infraction@infraction/_scheduler.py`, [PR #58](https://github.com/dd2480-spring-2025-group-1/bot/pull/58) has been drafted, 2 test cases added.
+- For `deactivate_infraction@infraction/_scheduler.py`, [PR #58](https://github.com/dd2480-spring-2025-group-1/bot/pull/58) has been drafted, 5 test cases added.
 - For `apply_infraction@infraction/_scheduler.py`, [PR #54](https://github.com/dd2480-spring-2025-group-1/bot/pull/54) has been drafted, 2 test cases added.
 - For `utils/helpers.py`, [PR #3260](https://github.com/python-discord/bot/pull/3260) had been created by @strengthless, approved and merged into the upstream, which included 7 new test cases.
 - For `infraction_edit@infraction/management.py`, [PR #38](https://github.com/dd2480-spring-2025-group-1/bot/pull/38) has been drafted, 4 test cases added.
