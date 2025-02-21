@@ -14,6 +14,8 @@ BOT = MockBot()
 class InviteListTests(unittest.IsolatedAsyncioTestCase):
     """Test the ExtensionsList class."""
 
+    # ruff: noqa: E501
+    # ruff: noqa: T201
     def setUp(self):
         """Sets up fresh objects for each test."""
         self.filter_list = InviteList(MagicMock())
@@ -67,8 +69,12 @@ class InviteListTests(unittest.IsolatedAsyncioTestCase):
         # We print the coverage report at the end of the test, and we also tell the linter to ignore this.
         sum(cls.flags)
         len(cls.flags)
+        coverage = sum(cls.flags)
+        branches = len(cls.flags)
         false_flags = filter(lambda x: not x[1], enumerate(cls.flags))
-        [x[0] for x in false_flags]
+        misses = [x[0] for x in false_flags]
+        print(f"humanize_delta coverage report: {coverage}/{branches}")
+        print(f"Missed branches: {misses}")
 
 
     @patch("bot.instance", BOT)
