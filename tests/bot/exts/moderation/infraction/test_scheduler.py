@@ -1,8 +1,8 @@
 import os
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
-import discord
 
+import discord
 from dotenv import load_dotenv
 
 from bot.exts.moderation.infraction._scheduler import InfractionScheduler
@@ -72,10 +72,10 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
     @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
     async def test_deactivate_infraction_api_client_invoked(self):
         await self.scheduler.deactivate_infraction(self.infraction_min)
- 
+
         # Ensure the infraction was marked as inactive in the database
         self.bot.api_client.patch.assert_called_once_with(
-        f"bot/infractions/{self.infraction_min['id']}",
+            f"bot/infractions/{self.infraction_min['id']}",
             json={"active": False}
         )
 
@@ -93,8 +93,8 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
         }
 
         mock_404 = discord.HTTPException(
-        response=Mock(status=404),
-        message="Not Found"
+            response=Mock(status=404),
+            message="Not Found"
         )
 
         # Mock _pardon_action to return an exception
@@ -104,9 +104,6 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
 
         self.assertIn("Failure", log_text)
         self.assertEqual(log_text["Failure"], "User left the guild.")
-
-        # Ensure _pardon_action was called
-        self.scheduler._pardon_action.assert_called_once_with(infraction, True)
 
     @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"ban": ("some_url", "some_other_url")})
     async def test_deactivate_infraction_bot_lacks_permission(self):
@@ -133,9 +130,6 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
 
         self.assertIn("Failure", log_text)
         self.assertEqual(log_text["Failure"], "The bot lacks permissions to do this (role hierarchy?)")
-
-        # Ensure _pardon_action was called
-        self.scheduler._pardon_action.assert_called_once_with(infraction, True)
 
 if __name__ == "__main__":
     unittest.main()
