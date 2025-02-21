@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import re
+import typing
 from copy import copy
 from enum import Enum
 from time import struct_time
@@ -82,6 +83,29 @@ def discord_timestamp(timestamp: Timestamp, format: TimestampFormats = Timestamp
     """
     timestamp = int(arrow.get(timestamp).timestamp())
     return f"<t:{timestamp}:{format.value}>"
+
+
+def calculate_delta(args: typing.Any, kwargs: typing.Any, absolute: bool) -> relativedelta:
+    """
+    Calculate a `relativedelta` object from the given arguments.
+
+    Used as a helper function for `humanize_delta`.
+    """
+    if len(args) == 0:
+        delta = relativedelta(**kwargs)
+    elif len(args) == 1 and isinstance(args[0], relativedelta):
+        delta = args[0]
+    elif len(args) <= 2:
+        end = arrow.get(args[0])
+        start = arrow.get(args[1]) if len(args) == 2 else arrow.utcnow()
+        delta = round_delta(relativedelta(end.datetime, start.datetime))
+
+        if absolute:
+            delta = abs(delta)
+    else:
+        raise ValueError(f"Received {len(args)} positional arguments, but expected 1 or 2.")
+
+    return delta
 
 
 # region humanize_delta overloads
@@ -192,19 +216,7 @@ def humanize_delta(
     if args and kwargs:
         raise ValueError("Unsupported combination of positional and keyword arguments.")
 
-    if len(args) == 0:
-        delta = relativedelta(**kwargs)
-    elif len(args) == 1 and isinstance(args[0], relativedelta):
-        delta = args[0]
-    elif len(args) <= 2:
-        end = arrow.get(args[0])
-        start = arrow.get(args[1]) if len(args) == 2 else arrow.utcnow()
-        delta = round_delta(relativedelta(end.datetime, start.datetime))
-
-        if absolute:
-            delta = abs(delta)
-    else:
-        raise ValueError(f"Received {len(args)} positional arguments, but expected 1 or 2.")
+    delta = calculate_delta(args, kwargs, absolute)
 
     if max_units <= 0:
         raise ValueError("max_units must be positive.")
