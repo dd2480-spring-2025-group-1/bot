@@ -4,13 +4,14 @@ import unittest
 from unittest.mock import ANY, AsyncMock, DEFAULT, MagicMock, Mock, patch
 
 from discord.errors import NotFound
+from discord.ext import commands
 
 from bot.constants import Event
 from bot.exts.moderation.clean import Clean
 from bot.exts.moderation.infraction import _utils
 from bot.exts.moderation.infraction.infractions import Infractions
 from bot.exts.moderation.infraction.management import ModManagement
-from tests.helpers import MockBot, MockContext, MockGuild, MockMember, MockRole, MockUser, autospec
+from tests.helpers import MockBot, MockContext, MockGuild, MockMember, MockMessage, MockRole, MockUser, autospec
 
 
 class TruncationTests(unittest.IsolatedAsyncioTestCase):
@@ -341,4 +342,129 @@ class CleanBanTests(unittest.IsolatedAsyncioTestCase):
             {"id": 42},
             None,
             reason=f"[Clean log]({self.log_url})"
+        )
+
+class InfractionEditTests(unittest.IsolatedAsyncioTestCase):
+    """Tests for editing infractions"""
+    def setUp(self):
+        self.bot = MockBot()
+        self.mod = MockMember(roles=[MockRole(id=7890123, position=10)])
+        self.user = MockMember(roles=[MockRole(id=123456, position=1)])
+        self.guild = MockGuild()
+        self.ctx = MockContext(bot=self.bot, author=self.mod)
+        self.cog = Infractions(self.bot)
+        self.clean_cog = Clean(self.bot)
+        self.management_cog = ModManagement(self.bot)
+
+    @classmethod
+    def setUpClass(cls):
+        # Note that our branch coverage reporter does not take logical operators into account.
+        # i.e. if you have a line with `if a and b`, it will only count as 1 branch, not 2.
+        cls.flags = [False] * 27
+
+    @classmethod
+    def tearDownClass(cls):
+        # We print the coverage report at the end of the test.
+        sum(cls.flags)
+        len(cls.flags)
+        false_flags = filter(lambda x: not x[1], enumerate(cls.flags))
+        [x[0] for x in false_flags]
+
+    async def test_infraction_edit_no_duration_and_no_reason_raises(self):
+        """Should raise a BadArgument when a duration and a reason is not provided."""
+        with self.assertRaises(commands.BadArgument) as cm:
+            await self.management_cog.infraction_edit(
+                self.management_cog,
+                ctx=self.ctx,
+                infraction={"id": 987, "active": True, "reason": "previous reason", "type": "ban"},
+                duration=None,
+                reason=None,
+                flags=self.flags
+            )
+
+        self.assertEqual(
+            str(cm.exception),
+            "Neither a new expiry nor a new reason was specified."
+        )
+
+    async def test_infraction_edit_warning_and_note_infraction_cannot_be_edited(self):
+        """Should not allow editing the duration of a warning or note infraction."""
+
+        infr_type = "warning"
+
+        # Infraction is of a type note/warning.
+        warning_infraction = {
+            "id": 42,
+            "reason": "warning reason",
+            "active": False,
+            "type": infr_type
+        }
+
+        # Attempt to set a new duration for the warning infraction
+        self.assertIsNone(await self.management_cog.infraction_edit(
+            self.management_cog,
+            ctx=self.ctx,
+            infraction=warning_infraction,
+            duration="1h",
+            reason=None,
+            flags=self.flags
+        ))
+
+        # Assert that it refused to edit the infraction.
+        self.ctx.send.assert_awaited_once_with(f":x: Cannot edit the expiration of a {infr_type}.")
+        self.bot.api_client.patch.assert_not_awaited()
+
+    async def test_infraction_edit_expired_infraction_cannot_be_edited(self):
+        """Should not allow editing the duration of an expired infraction."""
+
+        # Infraction is inactive and of a type that isn't a note or warning.
+        expired_infraction = {
+            "id": 42,
+            "reason": "Expired reason",
+            "active": False,
+            "type": "ban"
+        }
+
+        # Attempt to set a new duration for an expired infraction.
+        self.assertIsNone(await self.management_cog.infraction_edit(
+            self.management_cog,
+            ctx=self.ctx,
+            infraction=expired_infraction,
+            duration="1h",
+            reason=None,
+            flags=self.flags
+        ))
+
+        # Assert that it refused to edit the infraction.
+        self.ctx.send.assert_awaited_once_with(":x: Cannot edit the expiration of an expired infraction.")
+        self.bot.api_client.patch.assert_not_awaited()
+
+    async def test_infraction_edit_calls_patch(self):
+        """Verifies that the `infraction_edit` method calls the `api_client.patch` method
+        to update an infraction when a new reason is provided."""
+
+        # Mock the get_channel method to return a mock channel
+        mock_channel = MagicMock()
+        mock_channel.send = AsyncMock(return_value=MockMessage())
+        self.bot.get_channel = MagicMock(return_value=mock_channel)
+
+        # Mock the input for the patch method of the API client
+        request_data = {
+            "reason": "normal reason"
+        }
+
+        normal_infraction = {"id": 42, "reason": "old reason"}
+
+        self.assertIsNone(await self.management_cog.infraction_edit(
+            self.management_cog,
+            ctx=self.ctx,
+            infraction=normal_infraction,
+            duration=None,
+            reason="normal reason",
+            flags=self.flags
+        ))
+
+        self.bot.api_client.patch.assert_awaited_once_with(
+            f"bot/infractions/{42}",
+            json=request_data,
         )

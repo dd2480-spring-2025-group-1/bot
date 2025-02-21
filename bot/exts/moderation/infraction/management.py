@@ -152,7 +152,8 @@ class ModManagement(commands.Cog):
         infraction: Infraction,
         duration: DurationOrExpiry | t.Literal["p", "permanent"] | None,
         *,
-        reason: str = None  # noqa: RUF013
+        reason: str = None,  # noqa: RUF013
+        flags: list[bool] = [False] * 22
     ) -> None:
         """
         Edit the duration and/or the reason of an infraction.
@@ -173,7 +174,22 @@ class ModManagement(commands.Cog):
         Use "p" or "permanent" to mark the infraction as permanent. Alternatively, an ISO 8601
         timestamp can be provided for the duration.
         """  # noqa: RUF002
-        if duration is None and reason is None:
+
+        def cov_if(bool: int, index_true: int, index_false: int) -> bool: # pragma: no cover
+            if bool:
+                flags[index_true] = True
+            else:
+                flags[index_false] = True
+            return bool
+
+        def cov_for(iterable: t.Any, index_true: int, index_false: int) -> t.Any: # pragma: no cover
+            if len(iterable) > 0:
+                flags[index_true] = True
+            else:
+                flags[index_false] = True
+            return iterable
+
+        if cov_if(duration is None and reason is None, 0, 1):
             # Unlike UserInputError, the error handler will show a specified message for BadArgument
             raise commands.BadArgument("Neither a new expiry nor a new reason was specified.")
 
@@ -183,17 +199,17 @@ class ModManagement(commands.Cog):
         confirm_messages = []
         log_text = ""
 
-        if duration is not None and not infraction["active"]:
-            if (infr_type := infraction["type"]) in ("note", "warning"):
+        if cov_if(duration is not None and not infraction["active"], 2, 3):
+            if cov_if((infr_type := infraction["type"]) in ("note", "warning"), 4, 5):
                 await ctx.send(f":x: Cannot edit the expiration of a {infr_type}.")
             else:
                 await ctx.send(":x: Cannot edit the expiration of an expired infraction.")
             return
 
-        if isinstance(duration, str):
+        if cov_if(isinstance(duration, str), 6, 7):
             request_data["expires_at"] = None
             confirm_messages.append("marked as permanent")
-        elif duration is not None:
+        elif cov_if(duration is not None, 8, 9):
             origin, expiry = unpack_duration(duration)
             # Update `last_applied` if expiry changes.
             request_data["last_applied"] = origin.isoformat()
@@ -203,7 +219,7 @@ class ModManagement(commands.Cog):
         else:
             confirm_messages.append("expiry unchanged")
 
-        if reason:
+        if cov_if(reason, 10, 11):
             request_data["reason"] = reason
             confirm_messages.append("set a new reason")
             log_text += f"""
@@ -224,18 +240,18 @@ class ModManagement(commands.Cog):
         user = await get_or_fetch_member(ctx.guild, user_id)
 
         # Re-schedule infraction if the expiration has been updated
-        if "expires_at" in request_data:
+        if cov_if("expires_at" in request_data, 12, 13):
             # A scheduled task should only exist if the old infraction wasn't permanent
-            if infraction["expires_at"]:
+            if cov_if(infraction["expires_at"], 14, 15):
                 self.infractions_cog.scheduler.cancel(infraction_id)
 
             # If the infraction was not marked as permanent, schedule a new expiration task
-            if request_data["expires_at"]:
+            if cov_if(request_data["expires_at"], 16, 17):
                 self.infractions_cog.schedule_expiration(new_infraction)
                 # Timeouts are handled by Discord itself, so we need to edit the expiry in Discord as well
-                if user and infraction["type"] == "timeout":
+                if cov_if(user and infraction["type"] == "timeout", 18, 19):
                     capped, duration = _utils.cap_timeout_duration(expiry)
-                    if capped:
+                    if cov_if(capped, 20, 21):
                         await _utils.notify_timeout_cap(self.bot, ctx, user)
                     await user.edit(reason=reason, timed_out_until=expiry)
 
@@ -247,17 +263,17 @@ class ModManagement(commands.Cog):
         changes = " & ".join(confirm_messages)
         await ctx.send(f":ok_hand: Updated infraction #{infraction_id}: {changes}")
 
-        if user:
+        if cov_if(user, 22, 23):
             user_text = messages.format_user(user)
             thumbnail = user.display_avatar.url
         else:
             user_text = f"<@{user_id}>"
             thumbnail = None
 
-        if any(
+        if cov_if(any(
                 is_in_category(ctx.channel, category)
-                for category in (Categories.modmail, Categories.appeals, Categories.appeals_2)
-        ):
+                for category in cov_for((Categories.modmail, Categories.appeals, Categories.appeals_2), 26, 27)
+        ), 24, 25):
             jump_url = "(Infraction edited in a ModMail channel.)"
         else:
             jump_url = f"[Click here.]({ctx.message.jump_url})"
