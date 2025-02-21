@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
-from fastapi import HTTPException
+import discord
 
 from dotenv import load_dotenv
 
@@ -89,8 +89,13 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
             "active": True
         }
 
+        mock_404 = discord.HTTPException(
+        response=Mock(status=404),
+        message="Not Found"
+        )
+
         # Mock _pardon_action to return an exception
-        self.scheduler._pardon_action = AsyncMock(side_effect=HTTPException(status_code=404, detail="Not Found"))
+        self.scheduler._pardon_action = AsyncMock(side_effect=mock_404)
 
         # Mock the API client
         self.bot.api_client.patch = AsyncMock(return_value=None)
@@ -103,11 +108,10 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
         self.cog.mod_log.ignore = Mock()
         self.ctx.guild.ban = AsyncMock()
 
-        with self.assertRaises(HTTPException) as context:
-            await self.scheduler.deactivate_infraction(infraction)
+        log_text = await self.scheduler.deactivate_infraction(infraction)
 
-        self.assertEqual(context.exception.status_code, 404)
-        self.assertEqual(context.exception.detail, "Not Found")
+        self.assertIn("Failure", log_text)
+        self.assertEqual(log_text["Failure"], "User left the guild.")
 
         # Ensure _pardon_action was called
         self.scheduler._pardon_action.assert_called_once_with(infraction, True)
