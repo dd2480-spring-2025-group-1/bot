@@ -130,7 +130,7 @@ Report of old coverage:
 Name                                          Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------------------------
 bot/utils/helpers.py                            23      8      4      1    67%   19, 25-28, 38-43
-bot/exts/filtering/_filter_lists/invite.py      93     69     32      1    20%
+bot/exts/filtering/_filter_lists/invite.py      93     69     32      1    20%   19, 47-48, 52, 57, 63-152, 157-172
 ```
 
 Report of new coverage:
@@ -138,7 +138,7 @@ Report of new coverage:
 Name                                          Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------------------------
 bot/utils/helpers.py                            23      0      4      0   100%
-bot/exts/filtering/_filter_lists/invite.py      93     13     32     10    77%
+bot/exts/filtering/_filter_lists/invite.py      93     13     32     10    77%   19, 57, 76->78, 90-92, 96-97, 117->128, 129, 132->135, 136-140, 145->148, 161->166, 164
 
 
 ```
