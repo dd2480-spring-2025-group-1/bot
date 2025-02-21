@@ -191,7 +191,7 @@ actions_for@invite.py                           55     10     26      7    72%  
 
 Test cases added:
 - For `deactivate_infraction@infraction/_scheduler.py`, [PR #58](https://github.com/dd2480-spring-2025-group-1/bot/pull/58) has been drafted, 5 test cases added.
-- For `apply_infraction@infraction/_scheduler.py`, [PR #54](https://github.com/dd2480-spring-2025-group-1/bot/pull/54) has been drafted, 2 test cases added.
+- For `apply_infraction@infraction/_scheduler.py`, [PR #54](https://github.com/dd2480-spring-2025-group-1/bot/pull/54) has been drafted, 4 test cases added.
 - For `utils/helpers.py`, [PR #3260](https://github.com/python-discord/bot/pull/3260) had been created by @strengthless, approved and merged into the upstream, which included 7 new test cases.
 - For `infraction_edit@infraction/management.py`, [PR #38](https://github.com/dd2480-spring-2025-group-1/bot/pull/38) has been drafted, 4 test cases added.
 - For `actions_for@_filter_lists/invite.py`, [PR #44](https://github.com/dd2480-spring-2025-group-1/bot/pull/44) has been drafted, 4 test cases added.
@@ -207,4 +207,6 @@ To reach the next state “Working Well” we would need to work on becoming mor
 What are your main take-aways from this project? What did you learn?
 - One takeaway from this project is that GitHub automatically wants to make pull requests towards the main repository and not the fork. This caused us to bloat the main repository with faulty PRs. More importantly, we learned about function coverage and how to calculate it, helping us write better test cases. The hardest thing to learn was how to implement our own tests in a project built by someone else, many struggled with seemingly random errors that required them to thoroughly read the code and learn how it works. This lesson will be useful for all of us when we contribute to other projects in the future.
 
-As an additional note for P+, we have a working patch ([PR #3260](https://github.com/python-discord/bot/pull/3260)) accepted and merged into the upstream, which included a small fix along with the addition of 7 new test cases. The persons who are aiming for P+ are Johan (@joel90688), Kim (@strengthless) and Marcello (@Celleforst)
+As an additional note for P+, we have a working patch ([PR #3260](https://github.com/python-discord/bot/pull/3260)) accepted and merged into the upstream, which included a small fix along with the addition of 7 new test cases.
+
+Johan (@joel90688), Kim (@strengthless), Marcello (@Celleforst) are aiming for P+ with 4 points completed. Olivia (@OllanBollan) and Arvid (@HerodrawzZ) are also aiming for P+, but with 3 points completed.
