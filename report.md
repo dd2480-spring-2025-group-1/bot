@@ -167,8 +167,7 @@ Report of old coverage:
 ```
 Name                                          Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------------------------
-deactivate_infraction@_scheduler.py      
-60     60     14      0     0%   416-532
+deactivate_infraction@_scheduler.py      60     60     14      0     0%   416-532
 apply_infraction@_scheduler.py                  86     86     34      0     0%   147-300
 bot/utils/helpers.py                            23      8      4      1    67%   19, 25-28, 38-43
 infraction_edit@management.py                   51     51     26      0     0%   192-281
@@ -179,8 +178,7 @@ Report of new coverage:
 ```
 Name                                          Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------------------------
-deactivate_infraction@_scheduler.py      
-60     21     14      5    59%   440, 444-446, 455-457, 473-475, 484-489, 495-504, 507->511, 511->532
+deactivate_infraction@_scheduler.py      60     21     14      5    59%   440, 444-446, 455-457, 473-475, 484-489, 495-504, 507->511, 511->532
 apply_infraction@_scheduler.py                  86     41     34     12    48%   157->160, 167, 183->191 ....221-238, 241->259, 246-256, 260-267
 bot/utils/helpers.py                            23      0      4      0   100%
 infraction_edit@management.py                   51     22     26      7    52%   188, 194-195, 197-202, 214, 229-242, 254-255, 261
