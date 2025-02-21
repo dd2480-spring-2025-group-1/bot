@@ -24,6 +24,8 @@ from bot.utils.modlog import send_log_message
 
 log = get_logger(__name__)
 
+# We tell the linter to ignore the long line lengths in this file.
+# ruff: noqa: E501
 
 class InfractionScheduler:
     """Handles the application, pardoning, and expiration of infractions."""
@@ -131,6 +133,7 @@ class InfractionScheduler:
         action: Callable[[], Awaitable[None]] | None = None,
         user_reason: str | None = None,
         additional_info: str = "",
+        flags: list[bool] = [False] * 40
     ) -> bool:
         """
         Apply an infraction to the user, log the infraction, and optionally notify the user.
@@ -144,6 +147,20 @@ class InfractionScheduler:
 
         Returns whether or not the infraction succeeded.
         """
+        def cov_if(bool: int, index_true: int, index_false: int) -> bool: # pragma: no cover
+            if bool:
+                flags[index_true] = True
+            else:
+                flags[index_false] = True
+            return bool
+
+        def cov_for(iterable: t.Any, index_true: int, index_false: int) -> t.Any: # pragma: no cover
+            if len(iterable) > 0:
+                flags[index_true] = True
+            else:
+                flags[index_false] = True
+            return iterable
+
         infr_type = infraction["type"]
         icon = _utils.INFRACTION_ICONS[infr_type][0]
         reason = infraction["reason"]
@@ -154,7 +171,7 @@ class InfractionScheduler:
             infraction["last_applied"]
         )
 
-        if user_reason is None:
+        if cov_if(user_reason is None, 0, 1):
             user_reason = reason
 
         log.trace(f"Applying {infr_type} infraction #{id_} to {user}.")
@@ -163,14 +180,14 @@ class InfractionScheduler:
         confirm_msg = ":ok_hand: applied"
 
         # Specifying an expiry for a note or warning makes no sense.
-        if infr_type in ("note", "warning"):
+        if cov_if(infr_type in ("note", "warning"), 2, 3):
             expiry_msg = ""
         else:
-            expiry_msg = f" until {expiry}" if expiry else " permanently"
+            expiry_msg = f" until {expiry}" if cov_if(expiry, 4, 5) else " permanently"
 
         dm_result = ""
         dm_log_text = ""
-        expiry_log_text = f"\nExpires: {expiry}" if expiry else ""
+        expiry_log_text = f"\nExpires: {expiry}" if cov_if(expiry, 6, 7) else ""
         log_title = "applied"
         log_content = None
         failed = False
@@ -180,8 +197,8 @@ class InfractionScheduler:
         # send DMs to user that it doesn't share a guild with. If we were to
         # apply kick/ban infractions first, this would mean that we'd make it
         # impossible for us to deliver a DM. See python-discord/bot#982.
-        if not infraction["hidden"] and infr_type in {"ban", "kick"}:
-            if await _utils.notify_infraction(infraction, user, user_reason):
+        if cov_if(not infraction["hidden"] and infr_type in {"ban", "kick"}, 8, 9):
+            if cov_if(await _utils.notify_infraction(infraction, user, user_reason), 10, 11):
                 dm_result = ":incoming_envelope: "
                 dm_log_text = "\nDM: Sent"
             else:
@@ -189,7 +206,7 @@ class InfractionScheduler:
                 dm_log_text = "\nDM: **Failed**"
 
         end_msg = ""
-        if is_mod_channel(ctx.channel):
+        if cov_if(is_mod_channel(ctx.channel), 12, 13):
             log.trace(f"Fetching total infraction count for {user}.")
 
             infractions = await self.bot.api_client.get(
@@ -198,11 +215,11 @@ class InfractionScheduler:
             )
             total = len(infractions)
             end_msg = f" (#{id_} ; {total} infraction{ngettext('', 's', total)} total)"
-        elif infraction["actor"] == self.bot.user.id:
+        elif cov_if(infraction["actor"] == self.bot.user.id, 14, 15):
             log.trace(
                 f"Infraction #{id_} actor is bot; including the reason in the confirmation message."
             )
-            if reason:
+            if cov_if(reason, 16, 17):
                 end_msg = (
                     f" (reason: {textwrap.shorten(reason, width=1500, placeholder='...')})."
                     f"\n\nThe <@&{Roles.moderators}> have been alerted for review"
@@ -211,11 +228,11 @@ class InfractionScheduler:
         purge = infraction.get("purge", "")
 
         # Execute the necessary actions to apply the infraction on Discord.
-        if action:
+        if cov_if(action, 18, 19):
             log.trace(f"Running the infraction #{id_} application action.")
             try:
                 await action()
-                if expiry:
+                if cov_if(expiry, 20, 21):
                     # Schedule the expiration of the infraction.
                     self.schedule_expiration(infraction)
             except discord.HTTPException as e:
@@ -227,9 +244,9 @@ class InfractionScheduler:
                 log_title = "failed to apply"
 
                 log_msg = f"Failed to apply {' '.join(infr_type.split('_'))} infraction #{id_} to {user}"
-                if isinstance(e, discord.Forbidden):
+                if cov_if(isinstance(e, discord.Forbidden), 22, 23):
                     log.warning(f"{log_msg}: bot lacks permissions.")
-                elif e.code == 10007 or e.status == 404:
+                elif cov_if(e.code == 10007 or e.status == 404, 24, 25):
                     log.info(
                         f"Can't apply {infraction['type']} to user {infraction['user']} because user left from guild."
                     )
@@ -238,25 +255,25 @@ class InfractionScheduler:
                 failed = True
 
 
-        if not failed:
+        if cov_if(not failed, 26, 27):
             infr_message = f" **{purge}{' '.join(infr_type.split('_'))}** to {user.mention}{expiry_msg}{end_msg}"
 
             # If we need to DM and haven't already tried to
-            if not infraction["hidden"] and infr_type not in {"ban", "kick"}:
-                if await _utils.notify_infraction(infraction, user, user_reason):
+            if cov_if(not infraction["hidden"] and infr_type not in {"ban", "kick"}, 28, 29):
+                if cov_if(await _utils.notify_infraction(infraction, user, user_reason), 30, 31):
                     dm_result = ":incoming_envelope: "
                     dm_log_text = "\nDM: Sent"
                 else:
                     dm_result = f"{constants.Emojis.failmail} "
                     dm_log_text = "\nDM: **Failed**"
-                    if infr_type == "warning" and not ctx.channel.permissions_for(user).view_channel:
+                    if cov_if(infr_type == "warning" and not ctx.channel.permissions_for(user).view_channel, 32, 33):
                         failed = True
                         log_title = "failed to apply"
                         additional_info += "\n*Failed to show the warning to the user*"
                         confirm_msg = (f":x: Failed to apply **warning** to {user.mention} "
                                        "because DMing the user was unsuccessful")
 
-        if failed:
+        if cov_if(failed, 34, 35):
             log.trace(f"Trying to delete infraction {id_} from database because applying infraction failed.")
             try:
                 await self.bot.api_client.delete(f"bot/infractions/{id_}")
@@ -271,7 +288,7 @@ class InfractionScheduler:
         mentions = discord.AllowedMentions(users=[user], roles=False)
         await ctx.send(f"{dm_result}{confirm_msg}{infr_message}.", allowed_mentions=mentions)
 
-        if jump_url is None:
+        if cov_if(jump_url is None, 36, 37):
             jump_url = "(Infraction issued in a ModMail channel.)"
         else:
             jump_url = f"[Click here.]({jump_url})"
@@ -296,7 +313,7 @@ class InfractionScheduler:
             footer=f"ID: {id_}"
         )
 
-        log.info(f"{'Failed to apply' if failed else 'Applied'} {purge}{infr_type} infraction #{id_} to {user}.")
+        log.info(f"{'Failed to apply' if cov_if(failed, 38, 39) else 'Applied'} {purge}{infr_type} infraction #{id_} to {user}.")
         return not failed
 
     async def pardon_infraction(
