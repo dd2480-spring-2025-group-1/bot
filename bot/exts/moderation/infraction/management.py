@@ -200,16 +200,16 @@ class ModManagement(commands.Cog):
         log_text = ""
 
         if cov_if(duration is not None and not infraction["active"], 2, 3):
-            if (infr_type := infraction["type"]) in ("note", "warning"):
+            if cov_if((infr_type := infraction["type"]) in ("note", "warning"), 4, 5):
                 await ctx.send(f":x: Cannot edit the expiration of a {infr_type}.")
             else:
                 await ctx.send(":x: Cannot edit the expiration of an expired infraction.")
             return
 
-        if cov_if(isinstance(duration, str), 4, 5):
+        if cov_if(isinstance(duration, str), 6, 7):
             request_data["expires_at"] = None
             confirm_messages.append("marked as permanent")
-        elif cov_if(duration is not None, 6, 7):
+        elif cov_if(duration is not None, 8, 9):
             origin, expiry = unpack_duration(duration)
             # Update `last_applied` if expiry changes.
             request_data["last_applied"] = origin.isoformat()
@@ -219,7 +219,7 @@ class ModManagement(commands.Cog):
         else:
             confirm_messages.append("expiry unchanged")
 
-        if cov_if(reason, 8, 9):
+        if cov_if(reason, 10, 11):
             request_data["reason"] = reason
             confirm_messages.append("set a new reason")
             log_text += f"""
@@ -240,18 +240,18 @@ class ModManagement(commands.Cog):
         user = await get_or_fetch_member(ctx.guild, user_id)
 
         # Re-schedule infraction if the expiration has been updated
-        if cov_if("expires_at" in request_data, 10, 11):
+        if cov_if("expires_at" in request_data, 12, 13):
             # A scheduled task should only exist if the old infraction wasn't permanent
-            if cov_if(infraction["expires_at"], 12, 13):
+            if cov_if(infraction["expires_at"], 14, 15):
                 self.infractions_cog.scheduler.cancel(infraction_id)
 
             # If the infraction was not marked as permanent, schedule a new expiration task
-            if cov_if(request_data["expires_at"], 14, 15):
+            if cov_if(request_data["expires_at"], 16, 17):
                 self.infractions_cog.schedule_expiration(new_infraction)
                 # Timeouts are handled by Discord itself, so we need to edit the expiry in Discord as well
-                if cov_if(user and infraction["type"] == "timeout", 16, 17):
+                if cov_if(user and infraction["type"] == "timeout", 18, 19):
                     capped, duration = _utils.cap_timeout_duration(expiry)
-                    if cov_if(capped, 18, 19):
+                    if cov_if(capped, 20, 21):
                         await _utils.notify_timeout_cap(self.bot, ctx, user)
                     await user.edit(reason=reason, timed_out_until=expiry)
 
@@ -263,7 +263,7 @@ class ModManagement(commands.Cog):
         changes = " & ".join(confirm_messages)
         await ctx.send(f":ok_hand: Updated infraction #{infraction_id}: {changes}")
 
-        if cov_if(user, 20, 21):
+        if cov_if(user, 22, 23):
             user_text = messages.format_user(user)
             thumbnail = user.display_avatar.url
         else:
@@ -272,8 +272,8 @@ class ModManagement(commands.Cog):
 
         if cov_if(any(
                 is_in_category(ctx.channel, category)
-                for category in cov_for((Categories.modmail, Categories.appeals, Categories.appeals_2), 24, 25)
-        ), 22, 23):
+                for category in cov_for((Categories.modmail, Categories.appeals, Categories.appeals_2), 26, 27)
+        ), 24, 25):
             jump_url = "(Infraction edited in a ModMail channel.)"
         else:
             jump_url = f"[Click here.]({ctx.message.jump_url})"
