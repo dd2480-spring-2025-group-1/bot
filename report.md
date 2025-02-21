@@ -65,9 +65,11 @@ With everything combined, we deemed the project suitable for this assignment.
 ## Refactoring
 
 Plan for refactoring complex code:
+- For `deactivate_infraction@infraction/_scheduler.py`, we plan on extracting the 3 different try/exepct blocks into separate methods (pardon_infraction, user_is_watched, update_db).
 - For `humanize_delta@utils/time.py`, we plan on extracting methods, as the function is composed of two main parts, parsing of overload arguments into time delta, and stringification of the delta. Arguably, the former can be delegated to a separate helper function, which should greatly reduce the cyclomatic complexity.  
 
 Estimated impact of refactoring (lower CC, but other drawbacks?):
+- For `deactivate_infraction@infraction/_scheduler.py`, some drawbacks are decreased readablility of the code and increased function calls. 
 - For `humanize_delta@utils/time.py`, no drawbacks are anticipated, except for the use of `typing.Any` in the type signature for the new helper function. However, since type hints are not strongly enforced in Python (they're just **hints** for humans), this should not be a huge deal.  
 
 Carried out refactoring (optional, P+):
