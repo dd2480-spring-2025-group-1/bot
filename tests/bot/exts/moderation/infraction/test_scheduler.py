@@ -53,32 +53,31 @@ class TestDeactivateInfractionMinimal(unittest.IsolatedAsyncioTestCase):
             "active": True
         }
 
-        @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
-        async def test_deactivate_infraction_pardon_action_is_called(self):
-            await self.scheduler.deactivate_infraction(self.infraction_min)
+    @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
+    async def test_deactivate_infraction_pardon_action_is_called(self):
+        await self.scheduler.deactivate_infraction(self.infraction_min)
 
-            # Ensure _pardon_action was called
-            self.scheduler._pardon_action.assert_called_once_with(self.infraction_min, True)
+        # Ensure _pardon_action was called
+        self.scheduler._pardon_action.assert_called_once_with(self.infraction_min, True)
 
-        @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
-        async def test_deactivate_infraction_logs_are_properly_written(self):
-            logs = await self.scheduler.deactivate_infraction(self.infraction_min)
+    @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
+    async def test_deactivate_infraction_logs_are_properly_written(self):
+        logs = await self.scheduler.deactivate_infraction(self.infraction_min)
 
-            self.assertIn("Member", logs)
-            self.assertIn("Actor", logs)
-            self.assertIn("Reason", logs)
-            self.assertIn("Created", logs)
+        self.assertIn("Member", logs)
+        self.assertIn("Actor", logs)
+        self.assertIn("Reason", logs)
+        self.assertIn("Created", logs)
 
-        @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
-        async def test_deactivate_infraction_api_client_invoked(self):
-            await self.scheduler.deactivate_infraction(self.infraction_min)
+    @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"kick": ("some_url", "some_other_url")})
+    async def test_deactivate_infraction_api_client_invoked(self):
+        await self.scheduler.deactivate_infraction(self.infraction_min)
  
-            # Ensure the infraction was marked as inactive in the database
-            self.bot.api_client.patch.assert_called_once_with(
-            f"bot/infractions/{infraction['id']}",
-            f"bot/infractions/{self.infraction_min['id']}",
-             json={"active": False}
-         )
+        # Ensure the infraction was marked as inactive in the database
+        self.bot.api_client.patch.assert_called_once_with(
+        f"bot/infractions/{self.infraction_min['id']}",
+            json={"active": False}
+        )
 
     @patch("bot.exts.moderation.infraction._utils.INFRACTION_ICONS", {"ban": ("some_url", "some_other_url")})
     async def test_deactivate_infraction_user_left_guild(self):
