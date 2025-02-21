@@ -54,7 +54,7 @@ With everything combined, we deemed the project suitable for this assignment.
 2. Are the functions just complex, or also long?
     - We observe a slight correlation, but no causal effects. Generally speaking, if a function is long, then it's more probable that it contains some sort of complex code. However, there is no strict correlation here, as short functions can still be complex, vice versa.
 3. What is the purpose of the functions?
-    - For `deactivate_infraction@infraction/_scheduler.py`, it is a function that deactivates infraction status for users in the database and returns a log of the removed infraction.
+    - For `deactivate_infraction@infraction/_scheduler.py`, it is a function that deactivates infraction status for users in the database and returns a log of the removed infraction. The function manages has 3 main try blocks in which it calls to pardon the user, sees if the users is surveilled (checked via API call) and marks the infraction as inactive in the database. The CC is high in the function due to having to handle multiple different potential exceptions from these three try blocks, as well as manage what data should be included in the log_file.
     - For `apply_infraction@infraction/_scheduler.py`, it is a function that applies an infraction to the user and logs the infraction. It can also notify the user of the infraction. The high CC seems unnecessary, because if it involves numerous steps, the methods should be extracted rather than having all of them in the same function.
     - For `infraction_edit@infraction/management.py` modifies punishments for users who have violated server rules and notifies moderators about the changes. It is used by `infraction_append`, which applies new punishments, since the two functions share most logic. The function must handle various edge cases, such as preventing edits to expired infractions or warnings. It also processes multiple input formats and validates the request before making API calls. These requirements introduce multiple decision points, contributing to its high CC.
     - For `humanize_delta@utils/time.py`, it is a function that takes in a period of time (e.g. start and end timestamps) as its arguments, then convert it into a human-readable string. In which case, high CC is not expected.
@@ -181,7 +181,7 @@ Report of new coverage:
 ```
 Name                                          Stmts   Miss Branch BrPart  Cover   Missing
 ------------------------------------------------------------------------------------------
-deactivate_infraction@_scheduler.py             60     20     14      4    59%   437-440, 455-457, 473-475, 484-489, 495-504, 507->511, 511->532
+deactivate_infraction@_scheduler.py             60     18     14      5    64%   440, 455-457, 473-475, 484-489, 495-504, 507->511, 511->532
 apply_infraction@_scheduler.py                  86     41     34     12    48%   157->160, 167, 183->191 ....221-238, 241->259, 246-256, 260-267
 bot/utils/helpers.py                            23      0      4      0   100%
 infraction_edit@management.py                   51     22     26      7    52%   188, 194-195, 197-202, 214, 229-242, 254-255, 261
