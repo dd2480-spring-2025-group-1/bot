@@ -30,7 +30,6 @@ tenacity = "9.0.0"
 tldextract = "5.1.3"
 pydantic = "2.10.1"
 pydantic-settings = "2.7.1"
-fastapi = "^0.115.8"
 
 [tool.poetry.dev-dependencies]
 coverage = { git = "https://github.com/devdanzin/coveragepy.git", rev = "report_on_regions" }
