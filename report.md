@@ -76,7 +76,7 @@ Carried out refactoring (optional, P+):
 - For `humanize_delta@utils/time.py`, we have [PR #4](https://github.com/dd2480-spring-2025-group-1/bot/pull/4) which reduces CCN by 37.5%.
 - For `actions_for@./bot/exts/filtering/_filter_lists/invite.py`, we have [PR #22](https://github.com/dd2480-spring-2025-group-1/bot/pull/22) which reduces CCN by 35.1%.
 
-Note: since the `on_command_error` function already has 100% test coverage as reported the projects test coverage measuring tool, we decided to do part 2 of the assignment with `actions_for` instead, which is the function with the highest CCN reported by lizard (CCN 37) and it has 20% test coverage.
+Note: since the `on_command_error` function already has 100% test coverage as reported by `coverage.py`, we decided to do part 2 of the assignment with `actions_for` instead, which is the function with the highest CCN as reported by lizard (CCN 37) and it has 20% test coverage.
 
 ## Coverage
 
