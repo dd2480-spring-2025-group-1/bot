@@ -124,7 +124,12 @@ its output?
 
 Show the comments that describe the requirements for the coverage:
 - For `utils/helpers.py`, the functions are fairly straightforward. The requirements were already well documented in the one-line docstrings. The only caveat here is the `has_lines` function, which ignores one `\n` character from the end of the string when counting the number of lines.
-
+- For `apply_fpr@./bot/exts/filtering/_filter_lists/invite.py` there were no tests before. The function documentation is very scarce, thus the test cases had to be derived from the code itself. Some parts of the code are inaccessible since they require certain filters to trigger, which is not realizable with the MockBot used which generates random ids and data.
+Nonetheless the following tests could be implemented:
+  - The function should return success for a valid invite url, i.e. empty action, a message containing the invite code and the list filter that allowed the invite (since no filter triggered it, it should be ListType.ALLOW:[]).
+  - The function should return failure when there is no invite url in the ctx content, i.e. it should return None as action, an empty message and an empty dictionary for the list type.
+  - The function should return failure when the invite url is invalid.
+  - The function should return success for a different but valid url.
 Report of old coverage:
 ```
 Name                                          Stmts   Miss Branch BrPart  Cover   Missing
@@ -145,6 +150,7 @@ bot/exts/filtering/_filter_lists/invite.py      93     13     32     10    77%  
 
 Test cases added:
 - For `utils/helpers.py`, [PR #3260](https://github.com/python-discord/bot/pull/3260) had been created by @strengthless, approved and merged into the upstream, which included 7 new test cases.
+- For `apply_fpr@./bot/exts/filtering/_filter_lists/invite.py`, [PR #44](https://github.com/dd2480-spring-2025-group-1/bot/pull/44) has been drafted.
 
 ## Self-assessment: Way of working
 
